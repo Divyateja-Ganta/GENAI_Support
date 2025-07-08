@@ -1,0 +1,131 @@
+# Creating the necessary files for a GitHub-ready Streamlit demo app
+
+from pathlib import Path
+
+# Create the app.py file
+app_py_code = """\
+import streamlit as st
+import random
+
+# Mock documents and metadata
+mock_docs = {
+    "v22.3": [
+        "Service A failed due to missing DB connection string.",
+        "No timeout issues observed in v22.3."
+    ],
+    "v22.4": [
+        "Thread pool bottleneck caused timeout in high-load conditions.",
+        "New feature X introduced with known issue in retry logic."
+    ],
+    "v23.0": [
+        "Improved performance, known regression in alerting module.",
+        "Patch applied to fix retry logic introduced in v22.4."
+    ]
+}
+
+# UI Setup
+st.set_page_config(page_title="Agentic AI Support Assistant", layout="centered")
+st.title("🤖 Agentic AI Support Assistant Demo")
+
+st.sidebar.title("Configuration")
+selected_version = st.sidebar.selectbox("Select Product Version", ["v22.3", "v22.4", "v23.0"])
+stage = st.sidebar.radio("Select Assistant Stage", ["Stage 1: Basic Retrieval", "Stage 2: Version-aware RCA", "Stage 3: Agentic RCA Reasoner"])
+
+# Upload Section
+st.subheader("📤 Upload Document (Simulated)")
+uploaded_file = st.file_uploader("Upload a support log or document")
+if uploaded_file:
+    st.success(f"Document uploaded and tagged to version: {selected_version}")
+
+# Stage 1: Basic Retrieval
+if stage == "Stage 1: Basic Retrieval":
+    st.subheader("🔍 Basic Retrieval QA")
+    query = st.text_input("Ask a support question:")
+    if query:
+        response = random.choice(mock_docs[selected_version])
+        st.info(f"Response from knowledge base:\\n\\n{response}")
+
+# Stage 2: Version-aware RCA
+elif stage == "Stage 2: Version-aware RCA":
+    st.subheader("🧠 Version-aware Root Cause Analysis")
+    version_scope = st.radio("Scope of search", ["Only selected version", "All versions"])
+    query = st.text_input("Enter incident keyword or description:")
+    if query:
+        if version_scope == "Only selected version":
+            response = random.choice(mock_docs[selected_version])
+            st.success(f"Root Cause (v={selected_version}): {response}")
+        else:
+            all_versions = sum(mock_docs.values(), [])
+            response = random.choice(all_versions)
+            st.success(f"Root Cause (multi-version): {response}")
+
+# Stage 3: Agentic RCA Reasoner
+elif stage == "Stage 3: Agentic RCA Reasoner":
+    st.subheader("🧠 Agentic RCA Reasoner")
+    incident_text = st.text_area("Paste incident or ticket summary:")
+    if st.button("Diagnose Incident"):
+        with st.spinner("Agent is reasoning over logs, configs, and KB..."):
+            reasoning_chain = [
+                f"Fetching logs and configs tagged for {selected_version}...",
+                "Detected anomaly in retry logic introduced post-v22.3.",
+                "Found correlated issue in config change: `max_retry_count` decreased.",
+                "Pattern matches known RCA in version v22.4.",
+                "Suggest escalating to patch management team for hotfix."
+            ]
+            for step in reasoning_chain:
+                st.write("✅", step)
+            st.success("⚠️ Root Cause Identified: Retry mechanism failure due to regression in v22.4.")
+"""
+
+readme_md = """\
+# 🧠 Agentic AI Support Assistant Demo (Streamlit)
+
+This is a Streamlit-based demo of the Agentic AI-powered support assistant that evolves through 3 stages:
+
+1. **Stage 1** – Basic Log Retrieval (static responses)
+2. **Stage 2** – Version-aware Root Cause Analysis
+3. **Stage 3** – Agentic Reasoning with RCA suggestion
+
+## 🚀 Run the App
+
+```bash
+pip install streamlit
+streamlit run app.py
+```
+
+## 🧪 Demo Features
+- Simulates document uploads tagged by version
+- Retrieves relevant context for RCA
+- Shows the evolution from static QA → version-aware filtering → agent-based reasoning
+
+## 🛠️ Future Enhancements
+- Integrate with Qdrant + OpenAI for embeddings
+- Add log parser + summarizer agents
+- Connect to ServiceNow or Jira for ticket triage
+
+"""
+
+requirements_txt = "streamlit"
+
+dockerfile = """\
+# Simple Dockerfile to run the Agentic AI Support Assistant Streamlit app
+FROM python:3.10-slim
+
+WORKDIR /app
+COPY . .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+EXPOSE 8501
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
+"""
+
+# Write all files to a folder
+project_dir = Path("/mnt/data/agentic_support_demo")
+project_dir.mkdir(parents=True, exist_ok=True)
+(project_dir / "app.py").write_text(app_py_code)
+(project_dir / "README.md").write_text(readme_md)
+(project_dir / "requirements.txt").write_text(requirements_txt)
+(project_dir / "Dockerfile").write_text(dockerfile)
+
+project_dir
