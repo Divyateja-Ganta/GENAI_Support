@@ -8,8 +8,8 @@
 **Agentic AI-Powered Support Assistant**  
 **POC Demo & Evolution**  
 Presented to: Product Implementation Team  
-Date: [Add Date]  
-Presented by: [Your Name]
+Date: 07-07-2025
+Presented by: Divya Teja Ganta
 
 ---
 
